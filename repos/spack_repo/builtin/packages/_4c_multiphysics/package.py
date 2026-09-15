@@ -41,11 +41,35 @@ class _4cMultiphysics(CMakePackage):
     )
     resource(
         name="mirco",
+        url="https://github.com/imcs-compsim/MIRCO/archive/84d9fa94b3cd2d358f9c498e716d50181ba626f2.tar.gz",
+        sha256="12bee3bba30e8e8a7965e961cb4924a5f11b8f173b74094ed7c66a7e38d98cb7",
+        destination="spack-resources",
+        placement="mirco",
+        when="@2026.1.0+mirco",
+    )
+    resource(
+        name="mirco",
         url="https://github.com/imcs-compsim/MIRCO/archive/b9d0c4ba27ff8463a3d2b17163fead8800b2650c.tar.gz",
         sha256="b3a16a0aeed5fcd778c8757d81af9070ec4964a5206f87b6257a402aa3fc4bfd",
         destination="spack-resources",
         placement="mirco",
-        when="+mirco",
+        when="@2026.2.0+mirco",
+    )
+    resource(
+        name="mirco",
+        url="https://github.com/imcs-compsim/MIRCO/archive/8b049a6462eba5809d7cffe039a77f3bc5593767.tar.gz",
+        sha256="8b051f040b5151307d9007574690adf0194bc0a94a6bb81a6e1bc6286914ba63",
+        destination="spack-resources",
+        placement="mirco",
+        when="@2026.3.0+mirco",
+    )
+    resource(
+        name="mirco",
+        url="https://github.com/imcs-compsim/MIRCO/archive/8b049a6462eba5809d7cffe039a77f3bc5593767.tar.gz",
+        sha256="8b051f040b5151307d9007574690adf0194bc0a94a6bb81a6e1bc6286914ba63",
+        destination="spack-resources",
+        placement="mirco",
+        when="@main+mirco",
     )
 
     variant("shared", default=True, description="Build shared libraries")
