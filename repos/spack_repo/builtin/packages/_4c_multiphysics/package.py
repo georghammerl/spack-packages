@@ -143,7 +143,11 @@ class _4cMultiphysics(CMakePackage):
     depends_on("googletest@1.15.2+gmock", when="@main")
 
     # 4C uses Qhull's deprecated non-reentrant libqhull API.
-    depends_on("qhull@2019.1", when="+qhull")
+    depends_on(
+        "qhull@2019.1",
+        patches=[patch("qhull-2019.1-darwin-executable-dir.patch", when="platform=darwin")],
+        when="+qhull",
+    )
     depends_on("vtk@9:+shared", when="+vtk")
     # VTK only needs Mesa as an OpenGL provider. Avoid Mesa's optional LLVM
     # backend, which is particularly prone to unusable auto-detected externals.

@@ -1,0 +1,20 @@
+Keep the Qhull executable out of the build root on Darwin, where the
+generated Qhull/ package configuration directory collides with qhull
+on case-insensitive filesystems, causing the linker to fail with
+"Is a directory".
+The installed executable and library names remain unchanged.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -484,6 +484,10 @@ set(qvoronoi_SOURCES    src/qvoronoi/qvoronoi.c)
+ set(qhalf_SOURCES       src/qhalf/qhalf.c)
+ 
+ add_executable(qhull ${qhull_SOURCES})
++if(APPLE)
++    set_target_properties(qhull PROPERTIES
++        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
++endif()
+ target_link_libraries(qhull ${qhull_STATICR})
+ 
+ add_executable(rbox ${rbox_SOURCES})
