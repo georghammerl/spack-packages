@@ -147,7 +147,11 @@ class _4cMultiphysics(CMakePackage):
     depends_on("vtk@9:+shared", when="+vtk")
     # VTK only needs Mesa as an OpenGL provider. Avoid Mesa's optional LLVM
     # backend, which is particularly prone to unusable auto-detected externals.
-    depends_on("mesa~llvm", when="+vtk platform=linux")
+    depends_on(
+        "mesa~llvm",
+        patches=[patch("mesa-25.0.5-linux-c11-threads.patch", when="@25.0.5")],
+        when="+vtk platform=linux",
+    )
     depends_on("gmsh@4.15.1+shared~cgns~fltk~med", when="+gmsh")
     depends_on(
         "dealii@9.6.2~examples~examples_compile+hdf5+mpi+p4est+taskflow+threads+trilinos"
