@@ -1,0 +1,13 @@
+Iocgns calls H5get_libversion directly when CGNS uses HDF5. Declare HDF5
+as an optional library dependency so TriBITS links it explicitly rather
+than relying on transitive linkage through CGNS or Exodus. Darwin's linker
+does not resolve this direct reference through those shared libraries.
+
+diff --git a/packages/seacas/libraries/ioss/src/cgns/cmake/Dependencies.cmake b/packages/seacas/libraries/ioss/src/cgns/cmake/Dependencies.cmake
+--- a/packages/seacas/libraries/ioss/src/cgns/cmake/Dependencies.cmake
++++ b/packages/seacas/libraries/ioss/src/cgns/cmake/Dependencies.cmake
+@@ -1,3 +1,4 @@
+ TRIBITS_PACKAGE_DEFINE_DEPENDENCIES(
+   LIB_REQUIRED_TPLS CGNS
++  LIB_OPTIONAL_TPLS HDF5
+ )
