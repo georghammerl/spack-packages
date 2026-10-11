@@ -247,6 +247,9 @@ class _4cMultiphysics(CMakePackage):
             self.define_from_variant("FOUR_C_ENABLE_PYTHON_BINDINGS", "pybind11"),
         ]
 
+        if spec.satisfies("platform=darwin"):
+            args.append(self.define("FOUR_C_ENABLE_LINKER_DETECTION", False))
+
         roots = {
             "qhull": ("FOUR_C_QHULL_ROOT", "qhull"),
             "vtk": ("FOUR_C_VTK_ROOT", "vtk"),
