@@ -1,2 +1,3 @@
 trilinos-16.2-sacado-clang-specialization.patch text eol=lf
 darwin-stacktrace-gnu-source.patch text eol=lf
+darwin-gauss-extrapolation-instantiation.patch text eol=lf
