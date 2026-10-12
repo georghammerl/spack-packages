@@ -250,6 +250,7 @@ class _4cMultiphysics(CMakePackage):
 
         if spec.satisfies("platform=darwin"):
             args.append(self.define("FOUR_C_ENABLE_LINKER_DETECTION", False))
+            args.append(self.define("FOUR_C_ENABLE_FE_TRAPPING", False))
 
         roots = {
             "qhull": ("FOUR_C_QHULL_ROOT", "qhull"),
