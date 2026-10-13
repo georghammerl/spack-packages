@@ -97,6 +97,7 @@ class _4cMultiphysics(CMakePackage):
     patch("darwin-gauss-extrapolation-instantiation.patch", when="@main platform=darwin")
     patch("darwin-face-element-instantiation.patch", when="@main platform=darwin")
     patch("darwin-material-test-template-definitions.patch", when="@main platform=darwin")
+    patch("darwin-fiber-test-template-definitions.patch", when="@main platform=darwin")
     patch("python-venv-no-downloads-2026.2.patch", when="@2026.1.0:2026.2.0+python")
     patch("python-venv-no-downloads-2026.3.patch", when="@2026.3.0+python")
     patch("python-venv-no-downloads-2026.3.patch", when="@main+python")

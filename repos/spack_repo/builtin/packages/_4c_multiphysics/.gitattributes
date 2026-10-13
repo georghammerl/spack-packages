@@ -3,3 +3,4 @@ darwin-stacktrace-gnu-source.patch text eol=lf
 darwin-gauss-extrapolation-instantiation.patch text eol=lf
 darwin-face-element-instantiation.patch text eol=lf
 darwin-material-test-template-definitions.patch text eol=lf
+darwin-fiber-test-template-definitions.patch text eol=lf
