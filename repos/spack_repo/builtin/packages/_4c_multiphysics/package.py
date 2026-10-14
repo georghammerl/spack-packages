@@ -129,6 +129,7 @@ class _4cMultiphysics(CMakePackage):
         "+mumps+superlu-dist+suite-sparse+exodus+hdf5 gotype=int",
         patches=[
             patch("trilinos-iocgns-extern-c-linkage.patch"),
+            patch("trilinos-16.2-deprecation-warnings.patch", when="@16.2"),
             patch("trilinos-16.2-sacado-clang-specialization.patch", when="@16.2 platform=darwin"),
         ],
     )
