@@ -132,10 +132,11 @@ class _4cMultiphysics(CMakePackage):
         "trilinos@16.2+mpi+amesos+amesos2+belos+epetra+epetraext"
         "+ifpack+ifpack2+intrepid2+isorropia+ml+muelu+nox+sacado+shards+stratimikos"
         "+teko+thyra+tpetra+zoltan+zoltan2+explicit_template_instantiation"
-        "+mumps+superlu-dist+suite-sparse+exodus gotype=int",
+        "+mumps+superlu-dist+suite-sparse+exodus+hdf5 gotype=int",
         patches=[
             patch("trilinos-iocgns-extern-c-linkage.patch"),
             patch("trilinos-16.2-deprecation-warnings.patch", when="@16.2"),
+            patch("trilinos-16.2-sacado-clang-specialization.patch", when="@16.2 platform=darwin"),
         ],
     )
     # Trilinos exposes MPI types in its C++ ABI, so oneAPI builds require
@@ -157,7 +158,11 @@ class _4cMultiphysics(CMakePackage):
     depends_on("googletest@1.15.2+gmock", when="@main")
 
     # 4C uses Qhull's deprecated non-reentrant libqhull API.
-    depends_on("qhull@2019.1", when="+qhull")
+    depends_on(
+        "qhull@2019.1",
+        patches=[patch("qhull-2019.1-darwin-executable-dir.patch", when="platform=darwin")],
+        when="+qhull",
+    )
     depends_on("vtk@9:+shared", when="+vtk")
     # VTK only needs Mesa as an OpenGL provider. Avoid Mesa's optional LLVM
     # backend, which is particularly prone to unusable auto-detected externals.
@@ -253,6 +258,10 @@ class _4cMultiphysics(CMakePackage):
             self.define_from_variant("FOUR_C_WITH_PYBIND11", "pybind11"),
             self.define_from_variant("FOUR_C_ENABLE_PYTHON_BINDINGS", "pybind11"),
         ]
+
+        if spec.satisfies("platform=darwin"):
+            args.append(self.define("FOUR_C_ENABLE_LINKER_DETECTION", False))
+            args.append(self.define("FOUR_C_ENABLE_FE_TRAPPING", False))
 
         roots = {
             "qhull": ("FOUR_C_QHULL_ROOT", "qhull"),
