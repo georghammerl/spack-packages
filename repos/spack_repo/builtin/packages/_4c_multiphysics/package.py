@@ -85,6 +85,17 @@ class _4cMultiphysics(CMakePackage):
     variant("pybind11", default=False, description="Build the py4C Python bindings")
 
     conflicts("~python", when="+pybind11", msg="+pybind11 requires +python")
+    conflicts(
+        "%cxx=clang",
+        when="+dealii",
+        msg="The deal.II dependency is not supported with Clang; disable +dealii or use GCC.",
+    )
+    conflicts(
+        "%cxx=oneapi",
+        when="+dealii",
+        msg="The deal.II dependency is not supported with Intel oneAPI; "
+        "disable +dealii or use GCC.",
+    )
 
     conflicts("platform=windows", msg="4C Multiphysics does not support Windows")
     conflicts("platform=darwin", when="@2026.1.0:2026.3.0", msg="macOS support is not available")
