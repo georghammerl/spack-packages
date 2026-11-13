@@ -8,11 +8,13 @@ from spack.package import *
 
 
 class _4cMultiphysics(CMakePackage):
-    """4C is a parallel multiphysics research code."""
+    """4C is a parallel multiphysics research code.
+
+    This recipe supports releases; use 4C's in-tree recipe for development builds.
+    """
 
     homepage = "https://www.4c-multiphysics.org/"
-    url = "https://github.com/4C-multiphysics/4C/archive/refs/tags/v2025.3.0.tar.gz"
-    git = "https://github.com/4C-multiphysics/4C.git"
+    url = "https://github.com/4C-multiphysics/4C/archive/refs/tags/v2026.3.0.tar.gz"
 
     maintainers(
         "bgoderbauer",
@@ -25,7 +27,6 @@ class _4cMultiphysics(CMakePackage):
     )
     license("LGPL-3.0-or-later")
 
-    version("main", branch="main")
     version("2026.3.0", sha256="d8fa2ca8a3815f8050f6d7f1c428ed65c4e4fea83a7079beffe4d6e11eddfb84")
     version("2026.2.0", sha256="57e05128934e06b67d5ae3c2d3402f80d1ddfc3975b1557670e5b1d3399a6c0b")
     version("2026.1.0", sha256="9d95607a0b7668c9712392c81863b6327b8922745705b62e07f605f1d6932646")
@@ -63,14 +64,6 @@ class _4cMultiphysics(CMakePackage):
         placement="mirco",
         when="@2026.3.0+mirco",
     )
-    resource(
-        name="mirco",
-        url="https://github.com/imcs-compsim/MIRCO/archive/0846e745aeda1ce7f11ceaa824dd411bd2775a68.tar.gz",
-        sha256="7697c7db5ecf7dcd6bee04b298b61a2205a5eeeb397372987a230b979b458b7e",
-        destination="spack-resources",
-        placement="mirco",
-        when="@main+mirco",
-    )
 
     variant("shared", default=True, description="Build shared libraries")
     variant("qhull", default=True, description="Enable Qhull support")
@@ -103,10 +96,8 @@ class _4cMultiphysics(CMakePackage):
     patch("identify-release-dealii.patch", when="+dealii")
     patch("link-installed-arborx.patch", when="+arborx")
     patch("use-installed-googletest.patch", when="@2026.1.0:2026.3.0")
-    patch("use-installed-googletest.patch", when="@main")
     patch("python-venv-no-downloads-2026.2.patch", when="@2026.1.0:2026.2.0+python")
     patch("python-venv-no-downloads-2026.3.patch", when="@2026.3.0+python")
-    patch("python-venv-no-downloads-2026.3.patch", when="@main+python")
 
     # GCC 14.2.0 hits an internal compiler error (ICE) in
     # cxx_eval_indirect_ref (cp/constexpr.cc) while instantiating
@@ -134,11 +125,20 @@ class _4cMultiphysics(CMakePackage):
         "+teko+thyra+tpetra+zoltan+zoltan2+explicit_template_instantiation"
         "+mumps+superlu-dist+suite-sparse+exodus+hdf5 gotype=int",
         patches=[
-            patch("trilinos-iocgns-extern-c-linkage.patch"),
+            patch("trilinos-iocgns-extern-c-linkage.patch", when="@:16.2.2"),
             patch("trilinos-16.2-deprecation-warnings.patch", when="@16.2"),
-            patch("trilinos-16.2-sacado-clang-specialization.patch", when="@16.2 platform=darwin"),
         ],
     )
+    depends_on("trilinos~cuda")
+    depends_on("kokkos~cuda")
+    depends_on("kokkos-kernels~cuda")
+    # Trilinos 16.2's BLAS wrappers require 32-bit integers.
+    for blas_provider in ("openblas", "intel-oneapi-mkl"):
+        requires(
+            f"^{blas_provider}~ilp64",
+            when=f"^{blas_provider}",
+            msg="4C's Trilinos stack requires LP64 BLAS/LAPACK (32-bit integers)",
+        )
     # Trilinos exposes MPI types in its C++ ABI, so oneAPI builds require
     # Intel MPI regardless of 4C's compiler.
     requires(
@@ -155,21 +155,21 @@ class _4cMultiphysics(CMakePackage):
     depends_on("cli11@2.6.1")
     depends_on("magic-enum@0.9.7")
     depends_on("googletest@1.15.2+gmock", when="@2026.1.0:2026.3.0")
-    depends_on("googletest@1.15.2+gmock", when="@main")
 
     # 4C uses Qhull's deprecated non-reentrant libqhull API.
-    depends_on(
-        "qhull@2019.1",
-        patches=[patch("qhull-2019.1-darwin-executable-dir.patch", when="platform=darwin")],
-        when="+qhull",
-    )
+    depends_on("qhull@2019.1", when="+qhull")
     depends_on("vtk@9:+shared", when="+vtk")
     # VTK only needs Mesa as an OpenGL provider. Avoid Mesa's optional LLVM
     # backend, which is particularly prone to unusable auto-detected externals.
     depends_on(
         "mesa~llvm",
-        patches=[patch("mesa-25.0.5-linux-c11-threads.patch", when="@25.0.5")],
+        patches=[patch("mesa-25.0.5-linux-c11-threads.patch", when="@23.2:25.2.6")],
         when="+vtk platform=linux",
+    )
+    depends_on(
+        "mesa~llvm",
+        patches=[patch("mesa-25.0.5-linux-c11-threads.patch", when="@23.2:25.2.6")],
+        when="+python platform=linux",
     )
     depends_on("gmsh@4.15.1+shared~cgns~fltk~med", when="+gmsh")
     depends_on(
@@ -258,10 +258,6 @@ class _4cMultiphysics(CMakePackage):
             self.define_from_variant("FOUR_C_WITH_PYBIND11", "pybind11"),
             self.define_from_variant("FOUR_C_ENABLE_PYTHON_BINDINGS", "pybind11"),
         ]
-
-        if spec.satisfies("platform=darwin"):
-            args.append(self.define("FOUR_C_ENABLE_LINKER_DETECTION", False))
-            args.append(self.define("FOUR_C_ENABLE_FE_TRAPPING", False))
 
         roots = {
             "qhull": ("FOUR_C_QHULL_ROOT", "qhull"),
