@@ -7,10 +7,12 @@ import pathlib
 import platform
 import re
 import shutil
+from unittest.mock import Mock
 
 import pytest
 from spack_repo.builtin.build_systems import autotools, cmake
 
+import spack.deptypes as dt
 import spack.platforms.test
 from spack.build_environment import setup_package
 from spack.concretize import concretize_one
@@ -25,6 +27,7 @@ from spack.package import (
     which,
     working_dir,
 )
+from spack.spec import Spec
 
 DATA_PATH = pathlib.Path(__file__).parent / "data"
 
@@ -491,3 +494,40 @@ def test_4c_mesa_c11_patch_selection(features, version, expected):
         for patch in patch_list
     }
     assert ("mesa-25.0.5-linux-c11-threads.patch" in patches) == expected
+
+
+@pytest.mark.parametrize(
+    "version,driver",
+    [
+        ("20.2.1", "swrast"),
+        ("23.3.6", "swrast"),
+        ("24.1.7", "swrast"),
+        ("24.2.0", "softpipe"),
+        ("24.3.4", "softpipe"),
+        ("25.0.5", "softpipe"),
+    ],
+)
+@pytest.mark.parametrize("llvm", [False, True])
+def test_mesa_gallium_driver_selection(config, monkeypatch, tmp_path, version, driver, llvm):
+    from spack_repo.builtin.packages.mesa import package as mesa
+
+    spec = Spec(
+        f"mesa@={version} {'+llvm' if llvm else '~llvm'}"
+        " +osmesa+opengl~glx~egl platform=linux target=x86_64"
+    )
+    if llvm:
+        libllvm = Spec("libllvm@17~llvm_dylib")
+        libllvm._mark_concrete()
+        libllvm.set_prefix(str(tmp_path / "llvm"))
+        spec.add_dependency_edge(libllvm, depflag=dt.LINK, virtuals=())
+        llvm_config = Mock(
+            path=os.path.join(libllvm.prefix.bin, "llvm-config"), return_value="YES"
+        )
+        monkeypatch.setattr(mesa, "Executable", Mock(return_value=llvm_config))
+        monkeypatch.setattr(mesa.MesonBuilder, "build_directory", str(tmp_path))
+
+    args = mesa.MesonBuilder(mesa.Mesa(spec)).meson_args()
+    expected = "swrast" if llvm else driver
+    assert [arg for arg in args if arg.startswith("-Dgallium-drivers=")] == [
+        f"-Dgallium-drivers={expected}"
+    ]
